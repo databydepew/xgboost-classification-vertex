@@ -1,0 +1,91 @@
+components:
+  comp-xgboost-training:
+    executorLabel: exec-xgboost-training
+    inputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+          description: The training dataset.
+    outputDefinitions:
+      artifacts:
+        metrics:
+          artifactType:
+            schemaTitle: system.Metrics
+            schemaVersion: 0.0.1
+          description: The metrics of the trained model.
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+          description: The model artifact stores the model.joblib file.
+deploymentSpec:
+  executors:
+    exec-xgboost-training:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - xgboost_training
+        command:
+        - python3
+        - /pipelines/component/src/xgboost_training.py
+        image: us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest
+pipelineInfo:
+  name: xgboost-training
+root:
+  dag:
+    outputs:
+      artifacts:
+        metrics:
+          artifactSelectors:
+          - outputArtifactKey: metrics
+            producerSubtask: xgboost-training
+        model:
+          artifactSelectors:
+          - outputArtifactKey: model
+            producerSubtask: xgboost-training
+        xgboost-training-metrics:
+          artifactSelectors:
+          - outputArtifactKey: metrics
+            producerSubtask: xgboost-training
+    tasks:
+      xgboost-training:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-xgboost-training
+        inputs:
+          artifacts:
+            dataset:
+              componentInputArtifact: dataset
+        taskInfo:
+          name: xgboost-training
+  inputDefinitions:
+    artifacts:
+      dataset:
+        artifactType:
+          schemaTitle: system.Dataset
+          schemaVersion: 0.0.1
+        description: The training dataset.
+  outputDefinitions:
+    artifacts:
+      metrics:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+        description: The metrics of the trained model.
+      model:
+        artifactType:
+          schemaTitle: system.Model
+          schemaVersion: 0.0.1
+        description: The model artifact stores the model.joblib file.
+      xgboost-training-metrics:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+        description: The metrics of the trained model.
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0

@@ -1,0 +1,80 @@
+components:
+  comp-export-dataset:
+    executorLabel: exec-export-dataset
+    inputDefinitions:
+      parameters:
+        dataset_id:
+          description: The BigQuery Dataset ID. Must be pre-created in the project.
+          parameterType: STRING
+        project_id:
+          description: The Project ID.
+          parameterType: STRING
+        view_name:
+          description: The BigQuery view name.
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+          description: The Dataset artifact with exported CSV file.
+deploymentSpec:
+  executors:
+    exec-export-dataset:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - export_dataset
+        command:
+        - python3
+        - /pipelines/component/src/export_dataset.py
+        image: us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest
+pipelineInfo:
+  name: export-dataset
+root:
+  dag:
+    outputs:
+      artifacts:
+        dataset:
+          artifactSelectors:
+          - outputArtifactKey: dataset
+            producerSubtask: export-dataset
+    tasks:
+      export-dataset:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-export-dataset
+        inputs:
+          parameters:
+            dataset_id:
+              componentInputParameter: dataset_id
+            project_id:
+              componentInputParameter: project_id
+            view_name:
+              componentInputParameter: view_name
+        taskInfo:
+          name: export-dataset
+  inputDefinitions:
+    parameters:
+      dataset_id:
+        description: The BigQuery Dataset ID. Must be pre-created in the project.
+        parameterType: STRING
+      project_id:
+        description: The Project ID.
+        parameterType: STRING
+      view_name:
+        description: The BigQuery view name.
+        parameterType: STRING
+  outputDefinitions:
+    artifacts:
+      dataset:
+        artifactType:
+          schemaTitle: system.Dataset
+          schemaVersion: 0.0.1
+        description: The Dataset artifact with exported CSV file.
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0

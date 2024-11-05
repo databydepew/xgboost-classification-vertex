@@ -1,0 +1,38 @@
+# These values are descriptive only - do not change.
+# Rerun AutoMLOps.generate() to change these values.
+gcp:
+  artifact_repo_location: us-central1
+  artifact_repo_name: xgboost-classification-artifact-registry
+  artifact_repo_type: artifact-registry
+  base_image: python:3.9-slim
+  build_trigger_location: us-central1
+  build_trigger_name: xgboost-classification-build-trigger
+  naming_prefix: xgboost-classification
+  pipeline_job_runner_service_account: vertex-pipelines@mdepew-assets.iam.gserviceaccount.com
+  pipeline_job_submission_service_location: us-central1
+  pipeline_job_submission_service_name: xgboost-classification-job-submission-svc
+  pipeline_job_submission_service_type: cloud-functions
+  project_id: mdepew-assets
+  setup_model_monitoring: false
+  pubsub_topic_name: xgboost-classification-queueing-svc
+  schedule_location: us-central1
+  schedule_name: xgboost-classification-schedule
+  schedule_pattern: 59 11 * * 0
+  source_repository_branch: automlops
+  source_repository_name: xgboost-classification-repository
+  source_repository_type: cloud-source-repositories
+  storage_bucket_location: us-central1
+  storage_bucket_name: mdepew-assets-xgboost-classification-bucket
+  vpc_connector: No VPC Specified
+pipelines:
+  gs_pipeline_job_spec_path: gs://mdepew-assets-xgboost-classification-bucket/pipeline_root/xgboost-classification/pipeline_job.yaml
+  parameter_values_path: pipelines/runtime_parameters/pipeline_parameter_values.json
+  pipeline_component_directory: components
+  pipeline_job_spec_path: scripts/pipeline_spec/pipeline_job.yaml
+  pipeline_region: us-central1
+  pipeline_storage_path: gs://mdepew-assets-xgboost-classification-bucket/pipeline_root
+tooling:
+  deployment_framework: cloud-build
+  provisioning_framework: gcloud
+  orchestration_framework: kfp
+  use_ci: true

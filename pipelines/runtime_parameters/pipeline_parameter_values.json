@@ -1,0 +1,8 @@
+{
+    "bq_table": "mdepew-assets.synthetic.synthetic_mortgage_data",
+    "model_directory": "gs://mdepew-assets-bucket/trained_models/2024-11-05 10:43:34.861045",
+    "data_path": "gs://mdepew-assets-bucket/data",
+    "project_id": "mdepew-assets",
+    "region": "us-central1",
+    "gs_pipeline_spec_path": "gs://mdepew-assets-xgboost-classification-bucket/pipeline_root/xgboost-classification/pipeline_job.yaml"
+}

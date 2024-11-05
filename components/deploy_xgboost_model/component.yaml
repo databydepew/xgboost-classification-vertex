@@ -1,0 +1,93 @@
+components:
+  comp-deploy-xgboost-model:
+    executorLabel: exec-deploy-xgboost-model
+    inputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+          description: The model to deploy.
+      parameters:
+        project_id:
+          description: The project ID of the Vertex AI Endpoint.
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        vertex_endpoint:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+          description: The deployed Vertex AI Endpoint.
+        vertex_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+          description: The deployed Vertex AI Model.
+deploymentSpec:
+  executors:
+    exec-deploy-xgboost-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - deploy_xgboost_model
+        command:
+        - python3
+        - /pipelines/component/src/deploy_xgboost_model.py
+        image: us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest
+pipelineInfo:
+  name: deploy-xgboost-model
+root:
+  dag:
+    outputs:
+      artifacts:
+        vertex_endpoint:
+          artifactSelectors:
+          - outputArtifactKey: vertex_endpoint
+            producerSubtask: deploy-xgboost-model
+        vertex_model:
+          artifactSelectors:
+          - outputArtifactKey: vertex_model
+            producerSubtask: deploy-xgboost-model
+    tasks:
+      deploy-xgboost-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-deploy-xgboost-model
+        inputs:
+          artifacts:
+            model:
+              componentInputArtifact: model
+          parameters:
+            project_id:
+              componentInputParameter: project_id
+        taskInfo:
+          name: deploy-xgboost-model
+  inputDefinitions:
+    artifacts:
+      model:
+        artifactType:
+          schemaTitle: system.Model
+          schemaVersion: 0.0.1
+        description: The model to deploy.
+    parameters:
+      project_id:
+        description: The project ID of the Vertex AI Endpoint.
+        parameterType: STRING
+  outputDefinitions:
+    artifacts:
+      vertex_endpoint:
+        artifactType:
+          schemaTitle: system.Artifact
+          schemaVersion: 0.0.1
+        description: The deployed Vertex AI Endpoint.
+      vertex_model:
+        artifactType:
+          schemaTitle: system.Model
+          schemaVersion: 0.0.1
+        description: The deployed Vertex AI Model.
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0

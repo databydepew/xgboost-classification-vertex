@@ -1,0 +1,66 @@
+components:
+  comp-create-bq-view:
+    executorLabel: exec-create-bq-view
+    inputDefinitions:
+      parameters:
+        dataset_id:
+          description: The BigQuery Dataset ID. Must be pre-created in the project.
+          parameterType: STRING
+        project_id:
+          description: The Project ID.
+          parameterType: STRING
+        table_name:
+          parameterType: STRING
+        view_name:
+          description: The BigQuery view name.
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-create-bq-view:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - create_bq_view
+        command:
+        - python3
+        - /pipelines/component/src/create_bq_view.py
+        image: us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest
+pipelineInfo:
+  name: create-bq-view
+root:
+  dag:
+    tasks:
+      create-bq-view:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-create-bq-view
+        inputs:
+          parameters:
+            dataset_id:
+              componentInputParameter: dataset_id
+            project_id:
+              componentInputParameter: project_id
+            table_name:
+              componentInputParameter: table_name
+            view_name:
+              componentInputParameter: view_name
+        taskInfo:
+          name: create-bq-view
+  inputDefinitions:
+    parameters:
+      dataset_id:
+        description: The BigQuery Dataset ID. Must be pre-created in the project.
+        parameterType: STRING
+      project_id:
+        description: The Project ID.
+        parameterType: STRING
+      table_name:
+        parameterType: STRING
+      view_name:
+        description: The BigQuery view name.
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0

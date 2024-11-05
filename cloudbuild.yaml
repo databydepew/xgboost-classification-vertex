@@ -1,0 +1,53 @@
+
+steps:
+# ==============================================================================
+# BUILD CUSTOM IMAGES
+# ==============================================================================
+
+  # build the component_base image
+  - name: "gcr.io/cloud-builders/docker"
+    args: [ "build", "-t", "us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest",
+            "--cache-from", "us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest", "." ]
+    dir: "components/component_base"
+    id: "build_component_base"
+    waitFor: ["-"]
+
+# ==============================================================================
+# PUSH CUSTOM IMAGES
+# ==============================================================================
+
+  # push the component_base image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest"]
+    dir: "components/component_base"
+    id: "push_component_base"
+    waitFor: ["build_component_base"]
+
+  # Install dependencies
+  - name: python:3.10
+    entrypoint: pip
+    args: ["install", "-r", "pipelines/requirements.txt", "--user"]
+    id: "install_pipelines_deps"
+    waitFor: ["push_component_base"]
+
+  # Build pipeline spec
+  - name: python:3.10
+    entrypoint: python
+    args: ["-m", "pipelines.pipeline", "--config", "configs/defaults.yaml"]
+    id: "build_pipeline_spec"
+    waitFor: ["install_pipelines_deps"]
+
+  # # Publish PipelineJob to topic
+  # - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  #   entrypoint: bash
+  #   args:
+  #     - "-c"
+  #     - |
+  #         gcloud pubsub topics publish xgboost-classification-queueing-svc --message \
+  #         "$(cat pipelines/runtime_parameters/pipeline_parameter_values.json)"
+  #   id: "publish_to_topic"
+  #   waitFor: ["build_pipeline_spec"]
+
+images:
+  # custom component images
+  - "us-central1-docker.pkg.dev/mdepew-assets/xgboost-classification-artifact-registry/xgboost-classification/components/component_base:latest"
