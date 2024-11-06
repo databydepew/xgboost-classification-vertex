@@ -12,6 +12,8 @@ def xgboost_training(
     dataset: Input[Dataset],
     model: Output[Model],
     metrics: Output[Metrics],
+    project_id: str,
+    region: str
 ):
     """Trains an XGBoost classifier.
 
@@ -103,16 +105,8 @@ def xgboost_training(
     joblib.dump(xgb_model_best, os.path.join(model.path, "model.joblib"))
     print("Model saved to {}".format(os.path.join(model.path, "model.joblib")))
     
+    deploy_model_op(os.path.join(model.path, "model.joblib"), project_id=project_id, region=region)
     
-import argparse
-import json
-from kfp.dsl import executor
-
-import kfp
-from kfp import dsl
-from kfp.dsl import *
-from typing import *
-
 def deploy_model(
     model_directory: str,
     project_id: str,
@@ -166,33 +160,7 @@ def deploy_model(
         machine_type='n1-standard-4',
         deployed_model_display_name='deployed-classification-model')
 
-#     sample_input = [[random.uniform(0, 300) for x in range(16)]]
-
-#     # Test endpoint predictions
-#     print('running prediction test...')
-#     try:
-#         resp = endpoint.predict(instances=sample_input)
-#         pp.pprint(resp)
-#     except Exception as ex:
-#         print('prediction request failed', ex)
-
-# def main():
-#     """Main executor."""
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('--executor_input', type=str)
-#     parser.add_argument('--function_to_execute', type=str)
-
-#     args, _ = parser.parse_known_args()
-#     executor_input = json.loads(args.executor_input)
-#     function_to_execute = globals()[args.function_to_execute]
-
-#     executor.Executor(
-#         executor_input=executor_input,
-#         function_to_execute=function_to_execute).execute()
-
-# if __name__ == '__main__':
-#     main()
-
+# 
 
 def main():
     """Main executor."""
