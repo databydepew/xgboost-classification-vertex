@@ -101,6 +101,98 @@ def xgboost_training(
     # Export the model to a file
     os.makedirs(model.path, exist_ok=True)
     joblib.dump(xgb_model_best, os.path.join(model.path, "model.joblib"))
+    print("Model saved to {}".format(os.path.join(model.path, "model.joblib")))
+    
+    
+import argparse
+import json
+from kfp.dsl import executor
+
+import kfp
+from kfp import dsl
+from kfp.dsl import *
+from typing import *
+
+def deploy_model(
+    model_directory: str,
+    project_id: str,
+    region: str
+):
+    """Custom component that uploads a saved model from GCS to Vertex Model Registry
+       and deploys the model to an endpoint for online prediction.
+
+    Args:
+        model_directory: GS location of saved model.
+        project_id: Project_id.
+        region: Region.
+    """
+    import pprint as pp
+    import random
+
+    from google.cloud import aiplatform
+
+    aiplatform.init(project=project_id, location=region)
+    # Check if model exists
+    models = aiplatform.Model.list()
+    model_name = 'xgboost-classification-model'
+    if 'xgboost-classification-model' in (m.name for m in models):
+        parent_model = model_name
+        model_id = None
+        is_default_version=False
+        version_aliases=['experimental', 'challenger', 'custom-training', 'decision-tree']
+        version_description='challenger version'
+    else:
+        parent_model = None
+        model_id = model_name
+        is_default_version=True
+        version_aliases=['champion', 'custom-training', 'decision-tree']
+        version_description='first version'
+
+    serving_container = 'us-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-2:latest'
+    uploaded_model = aiplatform.Model.upload(
+        artifact_uri=model_directory,
+        model_id=model_id,
+        display_name=model_name,
+        parent_model=parent_model,
+        is_default_version=is_default_version,
+        version_aliases=version_aliases,
+        version_description=version_description,
+        serving_container_image_uri=serving_container,
+        serving_container_ports=[8080],
+        labels={'created_by': 'qarik-team'},
+    )
+
+    endpoint = uploaded_model.deploy(
+        machine_type='n1-standard-4',
+        deployed_model_display_name='deployed-classification-model')
+
+#     sample_input = [[random.uniform(0, 300) for x in range(16)]]
+
+#     # Test endpoint predictions
+#     print('running prediction test...')
+#     try:
+#         resp = endpoint.predict(instances=sample_input)
+#         pp.pprint(resp)
+#     except Exception as ex:
+#         print('prediction request failed', ex)
+
+# def main():
+#     """Main executor."""
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--executor_input', type=str)
+#     parser.add_argument('--function_to_execute', type=str)
+
+#     args, _ = parser.parse_known_args()
+#     executor_input = json.loads(args.executor_input)
+#     function_to_execute = globals()[args.function_to_execute]
+
+#     executor.Executor(
+#         executor_input=executor_input,
+#         function_to_execute=function_to_execute).execute()
+
+# if __name__ == '__main__':
+#     main()
+
 
 def main():
     """Main executor."""

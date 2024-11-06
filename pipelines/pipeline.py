@@ -69,7 +69,7 @@ def create_training_pipeline(pipeline_job_spec_path: str):
         )
 
         _ = deploy_xgboost_model(
-            project_id=config.PROJECT_ID,
+            project_id=project_id,
             model=training_task.outputs["model"],
         )
 

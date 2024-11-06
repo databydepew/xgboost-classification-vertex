@@ -111,77 +111,77 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
     --no-user-output-enabled
 
 
-echo -e "$GREEN Setting up Cloud Source Repository in project $PROJECT_ID $NC"
-if ! (gcloud source repos list --project="$PROJECT_ID" | grep -E "(^|[[:blank:]])$SOURCE_REPO_NAME($|[[:blank:]])"); then
+# echo -e "$GREEN Setting up Cloud Source Repository in project $PROJECT_ID $NC"
+# if ! (gcloud source repos list --project="$PROJECT_ID" | grep -E "(^|[[:blank:]])$SOURCE_REPO_NAME($|[[:blank:]])"); then
 
-  echo "Creating Cloud Source Repository: ${SOURCE_REPO_NAME} in project $PROJECT_ID"
-  gcloud source repos create $SOURCE_REPO_NAME
+#   echo "Creating Cloud Source Repository: ${SOURCE_REPO_NAME} in project $PROJECT_ID"
+#   gcloud source repos create $SOURCE_REPO_NAME
 
-else
+# else
 
-  echo "Cloud Source Repository: ${SOURCE_REPO_NAME} already exists in project $PROJECT_ID"
+#   echo "Cloud Source Repository: ${SOURCE_REPO_NAME} already exists in project $PROJECT_ID"
 
-fi
+# fi
 
-# Create Pub/Sub Topic
-echo -e "$GREEN Setting up Queueing Service in project $PROJECT_ID $NC"
-if ! (gcloud pubsub topics list | grep -E "(^|[[:blank:]])projects/${PROJECT_ID}/topics/${PUBSUB_TOPIC_NAME}($|[[:blank:]])"); then
+# # Create Pub/Sub Topic
+# echo -e "$GREEN Setting up Queueing Service in project $PROJECT_ID $NC"
+# if ! (gcloud pubsub topics list | grep -E "(^|[[:blank:]])projects/${PROJECT_ID}/topics/${PUBSUB_TOPIC_NAME}($|[[:blank:]])"); then
 
-  echo "Creating Pub/Sub Topic: ${PUBSUB_TOPIC_NAME} in project $PROJECT_ID"
-  gcloud pubsub topics create $PUBSUB_TOPIC_NAME
+#   echo "Creating Pub/Sub Topic: ${PUBSUB_TOPIC_NAME} in project $PROJECT_ID"
+#   gcloud pubsub topics create $PUBSUB_TOPIC_NAME
 
-else
+# else
 
-  echo "Pub/Sub Topic: ${PUBSUB_TOPIC_NAME} already exists in project $PROJECT_ID"
+#   echo "Pub/Sub Topic: ${PUBSUB_TOPIC_NAME} already exists in project $PROJECT_ID"
 
-fi
+# fi
 
-# Deploy Cloud Function
-echo -e "$GREEN Deploying Cloud Functions: ${PIPELINE_JOB_SUBMISSION_SERVICE_NAME} in project $PROJECT_ID $NC"
-gcloud functions deploy $PIPELINE_JOB_SUBMISSION_SERVICE_NAME \
-  --no-allow-unauthenticated \
-  --docker-repository="projects/${PROJECT_ID}/locations/${ARTIFACT_REPO_LOCATION}/repositories/${ARTIFACT_REPO_NAME}" \
-  --trigger-topic=$PUBSUB_TOPIC_NAME \
-  --entry-point=process_request \
-  --runtime=python39 \
-  --region=$PIPELINE_JOB_SUBMISSION_SERVICE_LOCATION \
-  --memory=512MB \
-  --timeout=540s \
-  --source=${BASE_DIR}services/submission_service \
-  --service-account=$PIPELINE_JOB_RUNNER_SERVICE_ACCOUNT_LONG
+# # Deploy Cloud Function
+# echo -e "$GREEN Deploying Cloud Functions: ${PIPELINE_JOB_SUBMISSION_SERVICE_NAME} in project $PROJECT_ID $NC"
+# gcloud functions deploy $PIPELINE_JOB_SUBMISSION_SERVICE_NAME \
+#   --no-allow-unauthenticated \
+#   --docker-repository="projects/${PROJECT_ID}/locations/${ARTIFACT_REPO_LOCATION}/repositories/${ARTIFACT_REPO_NAME}" \
+#   --trigger-topic=$PUBSUB_TOPIC_NAME \
+#   --entry-point=process_request \
+#   --runtime=python39 \
+#   --region=$PIPELINE_JOB_SUBMISSION_SERVICE_LOCATION \
+#   --memory=512MB \
+#   --timeout=540s \
+#   --source=${BASE_DIR}services/submission_service \
+#   --service-account=$PIPELINE_JOB_RUNNER_SERVICE_ACCOUNT_LONG
 
-# Create cloud build trigger
-echo -e "$GREEN Setting up Cloud Build Trigger in project $PROJECT_ID $NC"
-if ! (gcloud beta builds triggers list --project="$PROJECT_ID" --region="$BUILD_TRIGGER_LOCATION" | grep -E "(^|[[:blank:]])name: $BUILD_TRIGGER_NAME($|[[:blank:]])"); then
+# # Create cloud build trigger
+# echo -e "$GREEN Setting up Cloud Build Trigger in project $PROJECT_ID $NC"
+# if ! (gcloud beta builds triggers list --project="$PROJECT_ID" --region="$BUILD_TRIGGER_LOCATION" | grep -E "(^|[[:blank:]])name: $BUILD_TRIGGER_NAME($|[[:blank:]])"); then
 
-  echo "Creating Cloudbuild Trigger on branch $SOURCE_REPO_BRANCH in project $PROJECT_ID for repo ${SOURCE_REPO_NAME}"
-  gcloud beta builds triggers create cloud-source-repositories \
-    --ignored-files=.gitignore \
-    --region=$BUILD_TRIGGER_LOCATION \
-    --name=$BUILD_TRIGGER_NAME \
-    --repo=$SOURCE_REPO_NAME \
-    --branch-pattern="$SOURCE_REPO_BRANCH" \
-    --build-config=cloudbuild.yaml
+#   echo "Creating Cloudbuild Trigger on branch $SOURCE_REPO_BRANCH in project $PROJECT_ID for repo ${SOURCE_REPO_NAME}"
+#   gcloud beta builds triggers create cloud-source-repositories \
+#     --ignored-files=.gitignore \
+#     --region=$BUILD_TRIGGER_LOCATION \
+#     --name=$BUILD_TRIGGER_NAME \
+#     --repo=$SOURCE_REPO_NAME \
+#     --branch-pattern="$SOURCE_REPO_BRANCH" \
+#     --build-config=cloudbuild.yaml
 
-else
+# else
 
-  echo "Cloudbuild Trigger already exists in project $PROJECT_ID for repo ${SOURCE_REPO_NAME}"
+#   echo "Cloudbuild Trigger already exists in project $PROJECT_ID for repo ${SOURCE_REPO_NAME}"
 
-fi
+# fi
 
-# Create Cloud Scheduler Job
-echo -e "$GREEN Setting up Cloud Scheduler Job in project $PROJECT_ID $NC"
-if ! (gcloud scheduler jobs list --location=$SCHEDULE_LOCATION | grep -E "(^|[[:blank:]])$SCHEDULE_NAME($|[[:blank:]])"); then
+# # Create Cloud Scheduler Job
+# echo -e "$GREEN Setting up Cloud Scheduler Job in project $PROJECT_ID $NC"
+# if ! (gcloud scheduler jobs list --location=$SCHEDULE_LOCATION | grep -E "(^|[[:blank:]])$SCHEDULE_NAME($|[[:blank:]])"); then
 
-  echo "Creating Cloud Scheduler Job: ${SCHEDULE_NAME} in project $PROJECT_ID"
-  gcloud scheduler jobs create pubsub $SCHEDULE_NAME \
-    --schedule="${SCHEDULE_PATTERN}" \
-    --location=$SCHEDULE_LOCATION \
-    --topic=$PUBSUB_TOPIC_NAME \
-    --message-body "$(cat ${BASE_DIR}pipelines/runtime_parameters/pipeline_parameter_values.json)"
+#   echo "Creating Cloud Scheduler Job: ${SCHEDULE_NAME} in project $PROJECT_ID"
+#   gcloud scheduler jobs create pubsub $SCHEDULE_NAME \
+#     --schedule="${SCHEDULE_PATTERN}" \
+#     --location=$SCHEDULE_LOCATION \
+#     --topic=$PUBSUB_TOPIC_NAME \
+#     --message-body "$(cat ${BASE_DIR}pipelines/runtime_parameters/pipeline_parameter_values.json)"
 
-else
+# else
 
-  echo "Cloud Scheduler Job: ${SCHEDULE_NAME} already exists in project $PROJECT_ID"
+#   echo "Cloud Scheduler Job: ${SCHEDULE_NAME} already exists in project $PROJECT_ID"
 
-fi
+# fi

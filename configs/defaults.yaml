@@ -28,7 +28,7 @@ pipelines:
   gs_pipeline_job_spec_path: gs://mdepew-assets-xgboost-classification-bucket/pipeline_root/xgboost-classification/pipeline_job.yaml
   parameter_values_path: pipelines/runtime_parameters/pipeline_parameter_values.json
   pipeline_component_directory: components
-  pipeline_job_spec_path: scripts/pipeline_spec/pipeline_job.yaml
+  pipeline_job_spec_path: scripts/pipeline_spec/pipeline.yaml
   pipeline_region: us-central1
   pipeline_storage_path: gs://mdepew-assets-xgboost-classification-bucket/pipeline_root
 tooling:
